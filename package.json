@@ -1,28 +1,38 @@
 {
-  "name": "fcc-api-projects-boilerplate",
+  "name": "mike-lightz-backend-portfolio",
   "version": "0.0.1",
-  "description": "An FCC Backend Challenge",
+  "description": "A fcc microservice demo",
+  "engines": {
+    "node": "18.x || 16.x"
+  },
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "node test.js"
   },
   "dependencies": {
-    "express": "^4.12.4",
+    "express": "^4.15.4",
+    "ejs": "^3.1.5",
     "cors": "^2.8.0"
+  },
+  "devDependencies": {
+    "got": "^11.3.0",
+    "tape": "^4.7.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/freeCodeCamp/boilerplate-project-timestamp.git"
+    "url": "https://github.com/mikelightz/back-end-microservice"
   },
   "bugs": {
     "url": "https://github.com/freeCodeCamp/freeCodeCamp/issues"
   },
-  "homepage": "https://github.com/freeCodeCamp/boilerplate-project-timestamp#readme",
-  "author": "freeCodeCamp <team@freecodecamp.org>",
+  "homepage": "https://github.com/mikelightz/back-end-microservice#readme",
+  "author": "Michael Edwards <medwardsjr16@gmail.com>",
   "keywords": [
     "node",
     "express",
-    "freeCodeCamp"
+    "freeCodeCamp",
+    "heroku"
   ],
   "license": "MIT"
 }
