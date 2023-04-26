@@ -45,7 +45,7 @@ app.get("/api/:date?", function (req, res) {
     });
   }
 
-  if (passedInValue === "Invalid Date") {
+  if (passedInValue == "Invalid Date") {
     res.json({ error: "Invalid Date" });
   } else {
     res.json({
