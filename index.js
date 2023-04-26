@@ -43,6 +43,8 @@ app.get("/api/:date?", function (req, res) {
       unix: unixTime.getTime(),
       utc: unixTime.toUTCString(),
     });
+  } else {
+    res.json({ error: "Invalid Date" });
   }
 
   if (passedInValue === "Invalid Date") {
