@@ -23,7 +23,11 @@ app.get("/timestamp", function (req, res) {
   res.sendFile(__dirname + "/views/timestamp.html");
 });
 
-// your first API endpoint...
+app.get("/requestheaderparser", function (req, res) {
+  res.sendFile(__dirname + "/views/requestheaderparser.html");
+});
+
+// Timestamp App
 app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
 });
@@ -36,6 +40,19 @@ app.get("/api", function (req, res) {
     utc: now.toUTCString(),
   });
 });
+
+// Header Parser App
+app.get("/api/whoami", function (req, res) {
+  console.log("i can see this function");
+  res.json({
+    headers: Object.keys(req),
+    ipaddress: req.ip,
+    // language:,
+    // software:
+  });
+});
+
+// Timestamp App
 
 app.get("/api/:date?", function (req, res) {
   let dateString = req.params.date;
