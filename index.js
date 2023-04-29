@@ -43,12 +43,13 @@ app.get("/api", function (req, res) {
 
 // Header Parser App
 app.get("/api/whoami", function (req, res) {
-  console.log("i can see this function");
+  let ipAddress =
+    req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
+
   res.json({
-    headers: Object.keys(req),
-    ipaddress: req.ip,
-    // language:,
-    // software:
+    ipaddress: ipAddress,
+    language: req.headers["accept-language"],
+    software: req.headers["user-agent"],
   });
 });
 
