@@ -27,6 +27,9 @@ app.get("/requestheaderparser", function (req, res) {
   res.sendFile(__dirname + "/views/requestheaderparser.html");
 });
 
+app.get("/urlshortner", function (req, res) {
+  res.sendFile(__dirname + "/views/urlshortner.html");
+});
 // Home
 app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
