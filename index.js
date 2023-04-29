@@ -27,7 +27,7 @@ app.get("/requestheaderparser", function (req, res) {
   res.sendFile(__dirname + "/views/requestheaderparser.html");
 });
 
-// Timestamp App
+// Home
 app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
 });
@@ -38,18 +38,6 @@ app.get("/api", function (req, res) {
   res.json({
     unix: now.getTime(),
     utc: now.toUTCString(),
-  });
-});
-
-// Header Parser App
-app.get("/api/whoami", function (req, res) {
-  let ipAddress =
-    req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
-
-  res.json({
-    ipaddress: ipAddress,
-    language: req.headers["accept-language"],
-    software: req.headers["user-agent"],
   });
 });
 
@@ -76,6 +64,29 @@ app.get("/api/:date?", function (req, res) {
     });
   }
 });
+
+// Header Parser App
+app.get("/api/whoami", function (req, res) {
+  let ipAddress =
+    req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
+
+  res.json({
+    ipaddress: ipAddress,
+    language: req.headers["accept-language"],
+    software: req.headers["user-agent"],
+  });
+});
+
+// URL Shortner App
+app.post("/api/shorturl", function middleware(req, res, next) {
+  // res.json({
+  //   original_url:,
+  //   short_url:,
+  // })
+  next();
+});
+
+app.get("/api/shorturl/<short_url>", function (req, res) {});
 
 // listen for requests :)
 var listener = app.listen(port, function () {
