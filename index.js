@@ -97,7 +97,7 @@ app.use(
   })
 );
 app.use("/", require("./routes/redirect"));
-app.use("/api/url", require("./routes/url"));
+app.use("/api", require("./routes/url"));
 
 // listen for requests :)
 var listener = app.listen(port, function () {
