@@ -2,7 +2,7 @@ const express = require("express");
 
 const router = express.Router();
 
-const Url = require("/models/UrlModel");
+const Url = require("/models/UrlModel.js");
 
 router.get("/shorturl/<short_url>", async (req, res) => {
   try {
