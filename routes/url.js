@@ -7,7 +7,7 @@ const shortid = require("shortid");
 const router = express.Router();
 
 // import url database model
-const Url = require("../models/Url");
+const Url = require("/models/UrlModel");
 
 const baseUrl = "http:localhost:3000";
 
