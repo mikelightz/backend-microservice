@@ -2,9 +2,13 @@
 // where your node app starts
 
 // init project
-var express = require("express");
-var app = express();
-var port = process.env.PORT || 3000;
+const express = require("express");
+const app = express();
+const port = process.env.PORT || 3000;
+require("dotenv").config();
+
+var mongo = require("mongodb");
+var bodyParser = require("body-parser");
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
@@ -81,15 +85,19 @@ app.get("/api/whoami", function (req, res) {
 });
 
 // URL Shortner App
-app.post("/api/shorturl", function middleware(req, res, next) {
-  // res.json({
-  //   original_url:,
-  //   short_url:,
-  // })
-  next();
-});
+// Database config
+const connection = require("./config/db");
+connection.once("open", () => console.log("DB Connected"));
+connection.on("error", () => console.log("Error"));
 
-app.get("/api/shorturl/<short_url>", function (req, res) {});
+//Routes config
+app.use(
+  express.json({
+    extended: false,
+  })
+);
+app.use("/", require("./routes/redirect"));
+app.use("/api/url", require("./routes/url"));
 
 // listen for requests :)
 var listener = app.listen(port, function () {
