@@ -10,4 +10,4 @@ const URLSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("URL", URLSchema);
+module.exports = mongoose.model("Url", URLSchema);

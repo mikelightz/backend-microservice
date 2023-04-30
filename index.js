@@ -86,7 +86,7 @@ app.get("/api/whoami", function (req, res) {
 
 // URL Shortner App
 // Database config
-const connection = require("/config/db.js");
+const connection = require("./config/db");
 connection.once("open", () => console.log("DB Connected"));
 connection.on("error", () => console.log("Error"));
 
@@ -96,8 +96,8 @@ app.use(
     extended: false,
   })
 );
-app.use("/", require("/routes/redirect.js"));
-app.use("/api/url", require("/routes/url.js"));
+app.use("/", require("./routes/redirect"));
+app.use("/api/url", require("./routes/url"));
 
 // listen for requests :)
 var listener = app.listen(port, function () {

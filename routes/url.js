@@ -7,12 +7,12 @@ const shortid = require("shortid");
 const router = express.Router();
 
 // import url database model
-const Url = require("/models/UrlModel.js");
+const Url = require("../models/Url.js");
 
 const baseUrl = "http:localhost:3000";
 
-router.post("/shorturl", async (req, res) => {
-  const { longUrl } = reg.body; //destructing
+router.post("/api/shorturl", async (req, res) => {
+  const { longUrl } = req.body; //destructing
 
   if (!validUrl.isUri(baseUrl)) {
     return res.json({ error: "invalid url" });
