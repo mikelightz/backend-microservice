@@ -102,7 +102,7 @@ app.get("/api/whoami", function (req, res) {
 
 // URL Shortener App
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use("/public", express.static(`${process.cwd()}/public`));
 
 const URLSchema = new mongoose.Schema({
