@@ -101,12 +101,12 @@ app.get("/api/whoami", function (req, res) {
 });
 
 // URL Shortener App
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/public", express.static(`${process.cwd()}/public`));
 
 const URLSchema = new mongoose.Schema({
-  url: String,
+  original_url: String,
   urlId: String,
   short_url: String,
 });
@@ -124,10 +124,12 @@ app.post("/api/shorturl/", async (req, res) => {
 
   let urlId = shortid.generate();
 
+  console.log(req.body);
+
   if (validUrl.isUri(url)) {
     try {
       let newUrl = await Url.findOne({
-        url,
+        original_url: url,
       }); // checks if og url is in database before making short url
 
       if (newUrl) {
@@ -137,9 +139,9 @@ app.post("/api/shorturl/", async (req, res) => {
         let short_url = baseUrl + "/api/shorturl/" + urlId;
 
         newUrl = new Url({
-          url,
-          urlId,
-          short_url,
+          original_url: url,
+          urlId: urlId,
+          short_url: short_url,
         });
 
         await newUrl.save();
@@ -163,7 +165,7 @@ app.get("/api/shorturl/:urlId", async (req, res) => {
     });
 
     if (reDirUrl) {
-      return res.redirect(reDirUrl.url);
+      return res.redirect(reDirUrl.original_url);
     } else {
       return res.status(404).json({ error: "invalid url" });
     }
