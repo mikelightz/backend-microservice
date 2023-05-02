@@ -1,14 +1,23 @@
+const DB_URI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.etlu3sc.mongodb.net/?retryWrites=true&w=majority`;
 // index.js
 // where your node app starts
 
 // init project
-const express = require("express");
-const app = express();
-const port = process.env.PORT || 3000;
+var express = require("express");
+var app = express();
+var port = process.env.PORT || 3000;
 require("dotenv").config();
 
 var mongo = require("mongodb");
+var mongoose = require("mongoose");
 var bodyParser = require("body-parser");
+var shortid = require("shortid");
+var validUrl = require("valid-url");
+
+mongoose.connect(DB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
@@ -85,19 +94,74 @@ app.get("/api/whoami", function (req, res) {
 });
 
 // URL Shortner App
-// Database config
-const connection = require("./config/db");
-connection.once("open", () => console.log("DB Connected"));
-connection.on("error", () => console.log("Error"));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-//Routes config
-app.use(
-  express.json({
-    extended: false,
+const URLSchema = mongoose.model(
+  "UrlSchema",
+  new mongoose.Schema({
+    original_url: String,
+    suffix: String,
+    short_url: String,
   })
 );
-app.use("/", require("./routes/redirect"));
-app.use("/api", require("./routes/url"));
+
+app.post("/api/shorturl/", async (req, res) => {
+  let client_req_url = req.body.url;
+  let suffix = shortid.generate();
+  // let baseUrl = "http:localhost:3000";
+
+  if (!validUrl.isUri(client_req_url)) {
+    console.log(req);
+    return res.status(401).json({ error: "invalid url" });
+  }
+
+  // if (!validUrl.isUri(baseUrl)) {
+  //   return res.json({ error: "invalid base url" });
+  // }
+
+  try {
+    let newUrl = await URLSchema.findOne({
+      original_url: "client_req_url",
+    }); // checks if og url is in database before making short url
+
+    if (newUrl) {
+      // if url exist, return response
+      res.json(newUrl); // response = "return(display) on screen"
+    } else {
+      newUrl = new URLSchema({
+        original_url: client_req_url,
+        suffix: suffix,
+        short_url: __dirname + "/api/shorturl/" + suffix,
+      });
+
+      await newUrl.save();
+      res.json(newUrl);
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "server error" });
+  }
+});
+
+app.get("/api/shorturl/:suffix", async (req, res) => {
+  let userGenSuffix = req.params.suffix;
+
+  try {
+    let reDirUrl = await URLSchema.findOne({
+      suffix: userGenSuffix,
+    });
+
+    if (reDirUrl) {
+      return res.redirect(reDirUrl.original_url);
+    } else {
+      return res.status(404).json({ error: "invalid url" });
+    }
+  } catch (err) {
+    console.err(err);
+    res.status(500).json("Server Error");
+  }
+});
 
 // listen for requests :)
 var listener = app.listen(port, function () {
