@@ -14,11 +14,17 @@ var bodyParser = require("body-parser");
 var shortid = require("shortid");
 var validUrl = require("valid-url");
 
-mongoose.connect(process.env.DB_URI);
-// mongoose.connect(DB_URI, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
+mongoose
+  .connect(process.env.DB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log(`Db Connected`);
+  })
+  .catch((err) => {
+    console.log(err.message);
+  });
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
@@ -110,11 +116,10 @@ const URLSchema = mongoose.model(
 app.post("/api/shorturl/", async (req, res) => {
   let client_req_url = req.body.url;
   let suffix = shortid.generate();
-  let baseUrl = "http:localhost:3000";
+  let baseUrl = "http://localhost:3000";
 
   if (!validUrl.isUri(client_req_url)) {
-    console.log(req);
-    return res.status(401).json({ error: "invalid url" });
+    return res.status(400).json({ error: "invalid url" });
   }
 
   // if (!validUrl.isUri(baseUrl)) {
