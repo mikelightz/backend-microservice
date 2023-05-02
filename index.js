@@ -1,4 +1,3 @@
-const DB_URI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.etlu3sc.mongodb.net/?retryWrites=true&w=majority`;
 // index.js
 // where your node app starts
 
@@ -6,7 +5,8 @@ const DB_URI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWO
 var express = require("express");
 var app = express();
 var port = process.env.PORT || 3000;
-require("dotenv").config();
+var dotenv = require("dotenv");
+dotenv.config();
 
 var mongo = require("mongodb");
 var mongoose = require("mongoose");
@@ -14,10 +14,11 @@ var bodyParser = require("body-parser");
 var shortid = require("shortid");
 var validUrl = require("valid-url");
 
-mongoose.connect(DB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(process.env.DB_URI);
+// mongoose.connect(DB_URI, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// });
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
