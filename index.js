@@ -41,7 +41,7 @@ app.get("/requestheaderparser", function (req, res) {
   res.sendFile(__dirname + "/views/requestheaderparser.html");
 });
 
-app.get("/urlshortner", function (req, res) {
+app.get("/urlshortener", function (req, res) {
   res.sendFile(__dirname + "/views/urlshortner.html");
 });
 // Home
@@ -110,6 +110,7 @@ const URLSchema = mongoose.model(
 app.post("/api/shorturl/", async (req, res) => {
   let client_req_url = req.body.url;
   let suffix = shortid.generate();
+  let hostId = window.location.host;
   // let baseUrl = "http:localhost:3000";
 
   if (!validUrl.isUri(client_req_url)) {
@@ -133,7 +134,7 @@ app.post("/api/shorturl/", async (req, res) => {
       newUrl = new URLSchema({
         original_url: client_req_url,
         suffix: suffix,
-        short_url: __dirname + "/api/shorturl/" + suffix,
+        short_url: hostId + "/api/shorturl/" + suffix,
       });
 
       await newUrl.save();
