@@ -100,71 +100,75 @@ app.get("/api/whoami", function (req, res) {
   });
 });
 
-// URL Shortner App
+// URL Shortener App
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use("/public", express.static(`${process.cwd()}/public`));
 
-const URLSchema = mongoose.model(
-  "UrlSchema",
-  new mongoose.Schema({
-    original_url: String,
-    suffix: String,
-    short_url: String,
-  })
-);
+const URLSchema = new mongoose.Schema({
+  url: String,
+  urlId: String,
+  short_url: String,
+});
+
+const Url = mongoose.model("Url", URLSchema);
 
 app.post("/api/shorturl/", async (req, res) => {
-  let client_req_url = req.body.url;
-  let suffix = shortid.generate();
+  // let client_req_url = req.body.url;
+  let { url } = req.body;
   let baseUrl = "http://localhost:3000";
 
-  if (!validUrl.isUri(client_req_url)) {
-    return res.status(400).json({ error: "invalid url" });
+  if (!validUrl.isUri(baseUrl)) {
+    return res.json({ error: "invalid base url" });
   }
 
-  // if (!validUrl.isUri(baseUrl)) {
-  //   return res.json({ error: "invalid base url" });
-  // }
+  let urlId = shortid.generate();
 
-  try {
-    let newUrl = await URLSchema.findOne({
-      original_url: "client_req_url",
-    }); // checks if og url is in database before making short url
+  if (validUrl.isUri(url)) {
+    try {
+      let newUrl = await Url.findOne({
+        url,
+      }); // checks if og url is in database before making short url
 
-    if (newUrl) {
-      // if url exist, return response
-      res.json(newUrl); // response = "return(display) on screen"
-    } else {
-      newUrl = new URLSchema({
-        original_url: client_req_url,
-        suffix: suffix,
-        short_url: baseUrl + "/api/shorturl/" + suffix,
-      });
+      if (newUrl) {
+        // if newUrl exist, return response
+        res.json(newUrl); // response = "return(display) on screen"
+      } else {
+        let short_url = baseUrl + "/api/shorturl/" + urlId;
 
-      await newUrl.save();
-      res.json(newUrl);
+        newUrl = new Url({
+          url,
+          urlId,
+          short_url,
+        });
+
+        await newUrl.save();
+        res.json(newUrl);
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ error: "server error" });
     }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "server error" });
+  } else {
+    return res.status(400).json({ error: "invalid url" });
   }
 });
 
-app.get("/api/shorturl/:suffix", async (req, res) => {
-  let userGenSuffix = req.params.suffix;
+app.get("/api/shorturl/:urlId", async (req, res) => {
+  let userGenId = req.params.urlId;
 
   try {
-    let reDirUrl = await URLSchema.findOne({
-      suffix: userGenSuffix,
+    let reDirUrl = await Url.findOne({
+      urlId: userGenId,
     });
 
     if (reDirUrl) {
-      return res.redirect(reDirUrl.original_url);
+      return res.redirect(reDirUrl.url);
     } else {
       return res.status(404).json({ error: "invalid url" });
     }
   } catch (err) {
-    console.err(err);
+    console.log(err);
     res.status(500).json("Server Error");
   }
 });
