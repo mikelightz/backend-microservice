@@ -116,81 +116,47 @@ const Url = mongoose.model("Url", URLSchema);
 app.post("/api/shorturl/", async (req, res) => {
   // let client_req_url = req.body.url;
   let { url } = req.body;
-  // let baseUrl = "http://localhost:3000";
-  let dns = require("node:dns");
-  let protocol = /^https?:\/\//i;
-  let dnsUrl = url.replace(protocol, "");
+  let baseUrl = "http://localhost:3000";
 
-  dns.lookup(dnsUrl, async function (err, exists) {
-    if (exists) {
-      try {
-        let newUrl = await Url.findOne({
+  if (!validUrl.isUri(baseUrl)) {
+    return res.json({ error: "invalid base url" });
+  }
+
+  let urlId = shortid.generate();
+
+  console.log(req.body);
+
+  if (validUrl.isUri(url)) {
+    try {
+      let newUrl = await Url.findOne({
+        original_url: url,
+      }); // checks if og url is in database before making short url
+
+      if (newUrl) {
+        // if newUrl exist, return response
+        res.json(newUrl); // response = "return(display) on screen"
+      } else {
+        let short_url = baseUrl + "/api/shorturl/" + urlId;
+
+        newUrl = new Url({
           original_url: url,
-        }); // checks if og url is in database before making short url
+          urlId: urlId,
+          short_url: short_url,
+        });
 
-        if (newUrl) {
-          // if newUrl exist, return response
-          res.json(newUrl); // response = "return(display) on screen"
-        } else {
-          let short_url = __dirname + "/api/shorturl/" + urlId;
-
-          newUrl = new Url({
-            original_url: url,
-            urlId: urlId,
-            short_url: short_url,
-          });
-
-          await newUrl.save();
-          res.json(newUrl);
-        }
-      } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: "server error" });
+        await newUrl.save();
+        res.json(newUrl);
       }
-    } else {
-      return res.status(400).json({ error: "invalid url" });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ error: "server error" });
     }
-  });
+  } else {
+    return res.status(400).json({ error: "invalid url" });
+  }
 });
-//   if (!validUrl.isUri(baseUrl)) {
-//     return res.json({ error: "invalid base url" });
-//   }
 
-//   let urlId = shortid.generate();
-
-//   console.log(req.body);
-
-//   if (validUrl.isUri(url)) {
-//     try {
-//       let newUrl = await Url.findOne({
-//         original_url: url,
-//       }); // checks if og url is in database before making short url
-
-//       if (newUrl) {
-//         // if newUrl exist, return response
-//         res.json(newUrl); // response = "return(display) on screen"
-//       } else {
-//         let short_url = baseUrl + "/api/shorturl/" + urlId;
-
-//         newUrl = new Url({
-//           original_url: url,
-//           urlId: urlId,
-//           short_url: short_url,
-//         });
-
-//         await newUrl.save();
-//         res.json(newUrl);
-//       }
-//     } catch (err) {
-//       console.log(err);
-//       res.status(500).json({ error: "server error" });
-//     }
-//   } else {
-//     return res.status(400).json({ error: "invalid url" });
-//   }
-// });
-
-app.get("/api/shorturl/:urlId?", async (req, res) => {
+app.get("/api/shorturl/:urlId", async (req, res) => {
   let userGenId = req.params.urlId;
 
   try {
