@@ -114,7 +114,6 @@ const URLSchema = new mongoose.Schema({
 const Url = mongoose.model("Url", URLSchema);
 
 app.post("/api/shorturl/", async (req, res) => {
-  // let client_req_url = req.body.url;
   let { url } = req.body;
   let baseUrl = "http://localhost:3000";
 
