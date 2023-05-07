@@ -113,15 +113,25 @@ var fs = require("fs");
 
 var form = new FormData();
 
+const UsernameSchema = new mongoose.Schema({
+  username: String,
+  _id: String,
+});
+
+const Users = mongoose.model("Users", UsernameSchema);
+
 app.post("/api/users", async (req, res) => {
   let username = req.body.username;
   let generateId = new mongoose.Types.ObjectId();
   console.log("Username: " + username);
 
-  res.json({
+  let newUser = new Users({
     username: username,
     _id: generateId,
   });
+  await newUser.save();
+  res.json(newUser);
+
   // let usernames = Object.entries(user).map(([k, v]) => ({ [k]: v }));
 });
 
@@ -139,6 +149,8 @@ app.get("/api/users", function (req, res) {
   // let usernames = Object.entries(user).map(([k, v]) => ({ [k]: v }));
   // console.log(usernames[2]);
 });
+
+app.post("/api/users/:_id/exercises", async (req, res) => {});
 
 // URL Shortener App
 app.use("/public", express.static(`${process.cwd()}/public`));
