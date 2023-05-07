@@ -13,6 +13,10 @@ var mongoose = require("mongoose");
 var bodyParser = require("body-parser");
 var shortid = require("shortid");
 var validUrl = require("valid-url");
+var FormData = require("form-data");
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose
   .connect(process.env.DB_URI, {
@@ -49,6 +53,10 @@ app.get("/requestheaderparser", function (req, res) {
 
 app.get("/urlshortener", function (req, res) {
   res.sendFile(__dirname + "/views/urlshortener.html");
+});
+
+app.get("/exercisetracker", function (req, res) {
+  res.sendFile(__dirname + "/views/exercisetracker.html");
 });
 // Home
 app.get("/api/hello", function (req, res) {
@@ -100,9 +108,39 @@ app.get("/api/whoami", function (req, res) {
   });
 });
 
+//Exercise Tracker App
+var fs = require("fs");
+
+var form = new FormData();
+
+app.post("/api/users", async (req, res) => {
+  let username = req.body.username;
+  let generateId = new mongoose.Types.ObjectId();
+  console.log("Username: " + username);
+
+  res.json({
+    username: username,
+    _id: generateId,
+  });
+  // let usernames = Object.entries(user).map(([k, v]) => ({ [k]: v }));
+});
+
+app.get("/api/users", function (req, res) {
+  // let usernames = [];
+  // var len = oFullResponse.results.length;
+  // for (var i = 0; i < len; i++) {
+  //   usernames.push({
+  //     key: oFullResponse.results[i].label,
+  //     sortable: true,
+  //     resizeable: true,
+  //   });
+  // // }
+  // user = res.json();
+  // let usernames = Object.entries(user).map(([k, v]) => ({ [k]: v }));
+  // console.log(usernames[2]);
+});
+
 // URL Shortener App
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use("/public", express.static(`${process.cwd()}/public`));
 
 const URLSchema = new mongoose.Schema({
@@ -122,8 +160,6 @@ app.post("/api/shorturl/", async (req, res) => {
   }
 
   let urlId = shortid.generate();
-
-  console.log(req.body);
 
   if (validUrl.isUri(url)) {
     try {
