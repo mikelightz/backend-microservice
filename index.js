@@ -72,9 +72,138 @@ app.get("/api", function (req, res) {
   });
 });
 
+//Exercise Tracker App
+const UsernameSchema = new mongoose.Schema(
+  {
+    username: { type: String, required: true },
+  },
+  { versionKey: false }
+);
+
+const Users = mongoose.model("Users", UsernameSchema);
+
+const ExerciseSchema = new mongoose.Schema(
+  {
+    username: { type: String, required: true },
+    description: { type: String, required: true },
+    duration: { type: Number, required: true },
+    date: { type: Date, default: Date.now },
+    userId: { type: String, required: true },
+  },
+  { versionKey: false }
+);
+
+const Exercises = mongoose.model("Exercises", ExerciseSchema);
+
+app.post("/api/users", async (req, res) => {
+  let username = req.body.username;
+
+  if (username === "") {
+    return res.json({ error: "username is required" });
+  }
+
+  try {
+    const foundUser = await Users.findOne({
+      username,
+    });
+
+    if (foundUser) {
+      res.json(foundUser);
+    } else {
+      let newUser = await Users.create({
+        username,
+      });
+
+      await newUser.save();
+      res.json(newUser);
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ error: "username already exists" });
+  }
+});
+
+app.get("/api/users", async (req, res) => {
+  let users = await Users.find();
+  res.send(users);
+});
+
+app.post("/api/users/:_id/exercises", async (req, res) => {
+  let { description, duration, date } = req.body;
+  const userId = req.body[":_id"];
+  const foundUser = await Users.findById(userId);
+
+  if (!foundUser) {
+    res.status(400).json({ error: "no user exists for that id" });
+  }
+
+  if (!date) {
+    date = new Date();
+  } else {
+    date = new Date(date);
+  }
+
+  await Exercises.create({
+    username: foundUser.username,
+    description,
+    duration,
+    date,
+    userId,
+  });
+
+  res.send({
+    username: foundUser.username,
+    description,
+    duration,
+    date: date.toDateString(),
+    _id: userId,
+  });
+});
+
+app.get("/api/users/:_id/logs", async (req, res) => {
+  let { from, to, limit } = req.query;
+  const userId = req.params._id;
+  const foundUser = await Users.findById(userId);
+
+  if (!foundUser) {
+    res.status(400).json({ error: "no user exists for that id" });
+  }
+
+  let filter = { userId };
+  let dateFilter = {};
+  if (from) {
+    dateFilter[`$gte`] = new Date(from);
+  }
+  if (to) {
+    dateFilter[`$lte`] = new Date(to);
+  }
+  if (from || to) {
+    filter.date = dateFilter;
+  }
+
+  if (!limit) {
+    limit = 100;
+  }
+
+  let exercise = await Exercises.find(filter).limit(limit);
+  exercise = exercise.map((exerciseEdit) => {
+    return {
+      description: exerciseEdit.description,
+      duration: exerciseEdit.duration,
+      date: exerciseEdit.date.toDateString(),
+    };
+  });
+
+  res.json({
+    username: foundUser.username,
+    count: exercise.length,
+    _id: userId,
+    log: exercise,
+  });
+});
 // Timestamp App
 
-app.get("/api/:date?", function (req, res) {
+app.get("/api/:date", function (req, res) {
   let dateString = req.params.date;
   let passedInValue = new Date(dateString);
 
@@ -107,50 +236,6 @@ app.get("/api/whoami", function (req, res) {
     software: req.headers["user-agent"],
   });
 });
-
-//Exercise Tracker App
-var fs = require("fs");
-
-var form = new FormData();
-
-const UsernameSchema = new mongoose.Schema({
-  username: String,
-  _id: String,
-});
-
-const Users = mongoose.model("Users", UsernameSchema);
-
-app.post("/api/users", async (req, res) => {
-  let username = req.body.username;
-  let generateId = new mongoose.Types.ObjectId();
-  console.log("Username: " + username);
-
-  let newUser = new Users({
-    username: username,
-    _id: generateId,
-  });
-  await newUser.save();
-  res.json(newUser);
-
-  // let usernames = Object.entries(user).map(([k, v]) => ({ [k]: v }));
-});
-
-app.get("/api/users", function (req, res) {
-  // let usernames = [];
-  // var len = oFullResponse.results.length;
-  // for (var i = 0; i < len; i++) {
-  //   usernames.push({
-  //     key: oFullResponse.results[i].label,
-  //     sortable: true,
-  //     resizeable: true,
-  //   });
-  // // }
-  // user = res.json();
-  // let usernames = Object.entries(user).map(([k, v]) => ({ [k]: v }));
-  // console.log(usernames[2]);
-});
-
-app.post("/api/users/:_id/exercises", async (req, res) => {});
 
 // URL Shortener App
 app.use("/public", express.static(`${process.cwd()}/public`));
