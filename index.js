@@ -162,7 +162,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   }
   let filter = { userId: id };
   if (from || to) {
-    filter.date = dateFilter;
+    filter.date = dateObj;
   }
 
   const exercises = await Exercises.find(filter).limit(+limit ?? 500);
