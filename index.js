@@ -13,10 +13,6 @@ var mongoose = require("mongoose");
 var bodyParser = require("body-parser");
 var shortid = require("shortid");
 var validUrl = require("valid-url");
-var FormData = require("form-data");
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose
   .connect(process.env.DB_URI, {
@@ -37,6 +33,8 @@ app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 2
 
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static("public"));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function (req, res) {
@@ -75,7 +73,7 @@ app.get("/api", function (req, res) {
 //Exercise Tracker App
 const UsernameSchema = new mongoose.Schema(
   {
-    username: String,
+    username: { type: String, required: true, unique: true },
   },
   { versionKey: false }
 );
@@ -114,19 +112,20 @@ app.get("/api/users", async (req, res) => {
 });
 
 app.post("/api/users/:_id/exercises", async (req, res) => {
-  let userId = req.body[":_id"] || req.params._id;
-  let { description, date, duration } = req.body;
+  const id = req.params._id;
+  let { description, date } = req.body;
+  let duration = parseInt(req.body.duration);
 
   try {
-    const user = await Users.findById(userId);
+    const user = await Users.findById(id);
     if (!user) {
       res.send("could not find user");
     } else {
       const exerciseObj = new Exercises({
-        userId: user._id,
         description,
         duration,
         date: date ? new Date(date) : new Date(),
+        userId: user._id,
       });
 
       const exercise = await exerciseObj.save();
@@ -135,51 +134,19 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
         description: exercise.description,
         duration: exercise.duration,
         date: new Date(exercise.date).toDateString(),
+        _id: user._id,
       });
     }
   } catch (err) {
     console.log(err);
     res.send("There was an error saving the exercise");
   }
-
-  // if (!date) {
-  //   date = new Date();
-  // } else {
-  //   date = new Date(date);
-  // }
-
-  // const foundUser = await Users.findById(userId);
-
-  // try {
-  //   if (!foundUser) {
-  //     res.json({ error: "no user exists for that id" });
-  //   } else {
-  //     let newExercise = new Exercises({
-  //       username: foundUser.username,
-  //       description,
-  //       duration,
-  //       date,
-  //       userId,
-  //     });
-  //     let exercise = await newExercise.save();
-  //     res.json({
-  //       username: foundUser.username,
-  //       description: exercise.description,
-  //       duration: exercise.duration,
-  //       date: new Date(exercise.date).toDateString(),
-  //       _id: userId,
-  //     });
-  //   }
-  // } catch (err) {
-  //   console.log(err);
-  //   res.json({ error: "user not found" });
-  // }
 });
 
 app.get("/api/users/:_id/logs", async (req, res) => {
   let { from, to, limit } = req.query;
-  let userId = req.body[":_id"] || req.params._id;
-  const user = await Users.findById(userId);
+  const id = req.params._id;
+  const user = await Users.findById(id);
 
   if (!user) {
     res.send("could not find user");
@@ -193,12 +160,12 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   if (to) {
     dateObj[`$lte`] = new Date(to);
   }
-  let filter = { userId };
+  let filter = { userId: id };
   if (from || to) {
     filter.date = dateFilter;
   }
 
-  const exercises = await Exercises.find(filter).limit(+limit ?? 100);
+  const exercises = await Exercises.find(filter).limit(+limit ?? 500);
 
   const exerciseLog = exercises.map((e) => {
     return {
@@ -208,10 +175,11 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     };
   });
 
+  console.log(exercises);
   res.json({
+    _id: user._id,
     username: user.username,
     count: exercises.length,
-    _id: user._id,
     log: exerciseLog,
   });
 });
