@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>File Metadata</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link href="/public/style4.css" rel="stylesheet" type="text/css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>API Project: File Metadata Microservice</h2>
+
+      <h3>Usage:</h3>
+      <p>Please Upload a File ...</p>
+      <div class="view">
+        <h4 id="output"></h4>
+        <form
+          enctype="multipart/form-data"
+          method="POST"
+          action="/api/fileanalyse"
+        >
+          <input id="inputfield" type="file" name="upfile" />
+          <input id="button" type="submit" value="Upload" />
+        </form>
+      </div>
+    </div>
+    <div class="footer">
+      <p>
+        Powered by
+        <a href="https://www.freecodecamp.org/">freeCodeCamp.org</a>
+      </p>
+      <p>
+        <a href="/">Home</a>
+      </p>
+    </div>
+  </body>
+</html>

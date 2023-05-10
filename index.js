@@ -56,6 +56,10 @@ app.get("/urlshortener", function (req, res) {
 app.get("/exercisetracker", function (req, res) {
   res.sendFile(__dirname + "/views/exercisetracker.html");
 });
+
+app.get("/filemetadata", function (req, res) {
+  res.sendFile(__dirname + "/views/filemetadata.html");
+});
 // Home
 app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
@@ -288,6 +292,8 @@ app.get("/api/shorturl/:urlId", async (req, res) => {
     res.status(500).json("Server Error");
   }
 });
+
+// file metadata app
 
 // listen for requests :)
 var listener = app.listen(port, function () {
