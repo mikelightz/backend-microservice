@@ -13,6 +13,10 @@ var mongoose = require("mongoose");
 var bodyParser = require("body-parser");
 var shortid = require("shortid");
 var validUrl = require("valid-url");
+var fs = require("fs");
+var FormData = require("form-data");
+var axios = require("axios");
+var multer = require("multer");
 
 mongoose
   .connect(process.env.DB_URI, {
@@ -60,6 +64,7 @@ app.get("/exercisetracker", function (req, res) {
 app.get("/filemetadata", function (req, res) {
   res.sendFile(__dirname + "/views/filemetadata.html");
 });
+
 // Home
 app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
@@ -294,6 +299,52 @@ app.get("/api/shorturl/:urlId", async (req, res) => {
 });
 
 // file metadata app
+// app.get("/api/fileanalyse", async (req, res) => {
+//   res.send(
+//     '<form enctype="multipart/form-data" method="POST" action="/api/fileanalyse">' +
+//       '<input id="inputfield" type="file" name="upfile" />' +
+//       '<input id="button" type="submit" value="Upload" />' +
+//       "</form>)"
+//   );
+// });
+
+// const route = async () => {
+//   try {
+//     let file = fs.createReadStream("");
+//     let title = "new file";
+
+//     const form = new FormData();
+//     form.append("title", title);
+//     form.append("file", file);
+
+//     const resp = await axios.post(
+//       "http://localhost:3000/api/fileanalyse",
+//       form,
+//       {
+//         headers: {
+//           ...form.getHeaders(),
+//         },
+//       }
+//     );
+
+//     if (resp.status === 200) {
+//       return "Upload complete";
+//     }
+//   } catch (err) {
+//     return new Error(err.message);
+//   }
+// };
+
+// route().then((resp) => console.log(resp));
+
+// const upload = multer({ dest: "uploads/" });
+
+app.post("/api/fileanalyse", upload.single("upfile"), uploadFiles);
+
+function uploadFiles(req, res) {
+  console.log(req.body);
+  res.json({ message: "Successfully uploaded files" });
+}
 
 // listen for requests :)
 var listener = app.listen(port, function () {
