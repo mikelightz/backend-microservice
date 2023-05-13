@@ -14,6 +14,8 @@ var bodyParser = require("body-parser");
 var shortid = require("shortid");
 var validUrl = require("valid-url");
 var multer = require("multer");
+var urlParser = require("url");
+var dns = require("dns");
 
 mongoose
   .connect(process.env.DB_URI, {
@@ -30,6 +32,7 @@ mongoose
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
 var cors = require("cors");
+const { url } = require("inspector");
 app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
@@ -229,70 +232,55 @@ app.get("/api/whoami", function (req, res) {
 app.use("/public", express.static(`${process.cwd()}/public`));
 
 const URLSchema = new mongoose.Schema({
-  original_url: String,
-  urlId: String,
-  short_url: String,
+  original_url: { type: String, required: true, unique: true },
+  short_url: { type: String, required: true, unique: true },
 });
 
-const Url = mongoose.model("Url", URLSchema);
+let URLModel = mongoose.model("url", URLSchema);
 
-app.post("/api/shorturl/", async (req, res) => {
-  let { url } = req.body;
-  let baseUrl = "http://localhost:3000";
+app.post("/api/shorturl", function (req, res) {
+  let url = req.body.url;
 
-  if (!validUrl.isUri(baseUrl)) {
-    return res.json({ error: "invalid base url" });
-  }
-
-  let urlId = shortid.generate();
-
-  if (validUrl.isUri(url)) {
-    try {
-      let newUrl = await Url.findOne({
-        original_url: url,
-      }); // checks if og url is in database before making short url
-
-      if (newUrl) {
-        // if newUrl exist, return response
-        res.json(newUrl); // response = "return(display) on screen"
-      } else {
-        let short_url = baseUrl + "/api/shorturl/" + urlId;
-
-        newUrl = new Url({
-          original_url: url,
-          urlId: urlId,
-          short_url: short_url,
-        });
-
-        await newUrl.save();
-        res.json(newUrl);
-      }
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ error: "server error" });
-    }
-  } else {
-    return res.status(400).json({ error: "invalid url" });
-  }
-});
-
-app.get("/api/shorturl/:urlId", async (req, res) => {
-  let userGenId = req.params.urlId;
-
+  //validate url
   try {
-    let reDirUrl = await Url.findOne({
-      urlId: userGenId,
-    });
+    urlObj = new URL(url);
+    dns.lookup(urlObj.hostname, (err, address, family) => {
+      //if the DNS domain doesn't exist no address returned
+      if (!address) {
+        res.json({ error: "invalid url" });
+      }
+      //we have a valid url
+      else {
+        let original_url = urlObj.href;
+        let short_url = shortid.generate();
+        resObj = {
+          original_url: original_url,
+          short_url: short_url,
+        };
 
-    if (reDirUrl) {
-      return res.redirect(reDirUrl.original_url);
-    } else {
-      return res.status(404).json({ error: "invalid url" });
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json("Server Error");
+        //create an entry in the database
+        let newURL = new URLModel(resObj);
+        newURL.save();
+        res.json(resObj);
+      }
+    });
+  } catch {
+    res.json({ error: "invalid url" });
   }
+});
+
+app.get("/api/shorturl/:short_url", function (req, res) {
+  let short_url = req.params.short_url;
+
+  //find the og url from database
+  URLModel.findOne({ short_url: short_url }).then((foundURL) => {
+    if (foundURL) {
+      let original_url = foundURL.original_url;
+      res.redirect(original_url);
+    } else {
+      res.json({ message: "the short_url does not exist}" });
+    }
+  });
 });
 
 // file metadata app
