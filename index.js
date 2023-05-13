@@ -298,13 +298,17 @@ app.get("/api/shorturl/:urlId", async (req, res) => {
 // file metadata app
 const upload = multer({ dest: "uploads/" });
 
-app.post("/api/fileanalyse", upload.single("upfile"), (req, res) => {
-  res.json({
-    name: req.file.originalname,
-    type: req.file.mimetype,
-    size: req.file.size,
-  });
-});
+app.post(
+  "/filemetadata/api/fileanalyse",
+  upload.single("upfile"),
+  (req, res) => {
+    res.json({
+      name: req.file.originalname,
+      type: req.file.mimetype,
+      size: req.file.size,
+    });
+  }
+);
 
 // listen for requests :)
 var listener = app.listen(port, function () {
