@@ -192,6 +192,19 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     log: exerciseLog,
   });
 });
+
+// Header Parser App
+app.get("/api/whoami", function (req, res) {
+  let ipAddress =
+    req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
+
+  res.json({
+    ipaddress: ipAddress,
+    language: req.headers["accept-language"],
+    software: req.headers["user-agent"],
+  });
+});
+
 // Timestamp App
 
 app.get("/api/:date", function (req, res) {
@@ -214,18 +227,6 @@ app.get("/api/:date", function (req, res) {
       utc: passedInValue.toUTCString(),
     });
   }
-});
-
-// Header Parser App
-app.get("/api/whoami", function (req, res) {
-  let ipAddress =
-    req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
-
-  res.json({
-    ipaddress: ipAddress,
-    language: req.headers["accept-language"],
-    software: req.headers["user-agent"],
-  });
 });
 
 // URL Shortener App
