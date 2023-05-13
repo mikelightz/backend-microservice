@@ -296,7 +296,7 @@ app.get("/api/shorturl/:urlId", async (req, res) => {
 });
 
 // file metadata app
-const upload = multer();
+const upload = multer({ dest: "uploads/" });
 
 app.post("/api/fileanalyse", upload.single("upfile"), (req, res) => {
   res.json({
